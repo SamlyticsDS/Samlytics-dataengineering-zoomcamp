@@ -1,0 +1,8 @@
+# do not track parquet files this ignores all parquet files in the repository, regardless of their location
+*.parquet
+
+# Byte-compiled Python files
+__pycache__/
+*.py[codz]
+*$py.class
+

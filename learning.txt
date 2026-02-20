@@ -1,0 +1,89 @@
+to short the input prompter use 
+PS1="> "
+This change the prompter to "> " oly rather than long text
+
+To make above a pamernent change across all terminal use
+echo 'PS1="> "' > ~/.bashrc
+
+confirm "Docker" is installed by just typing "docker"
+Docker is a containerization software that allows us to isolate software in a similar way to virtual machines but in a much leaner way.
+
+to confirm docker is well installed run
+docker run hello-world
+
+i can run an interative container with below
+docker run -it ubuntu
+to install python in our new environment
+apt update
+apt install python3
+
+to exit back to my host machines
+ctrl d
+ to go back I can run
+ docker run -it ubuntu 
+it opens new image hence docker is stateless.
+
+We can run a Python image
+docker run -it python:3.13.
+docker run -it python:3.13.11-slim  for smaller version
+docker run -it --entrypoint=bash python:3.13.11-slim  For bash with python
+
+Above have python by default
+to see all previous Docker images
+docker ps -a
+to get the list of all docker images ids
+docker ps -aq
+to remove all listed files
+docker rm `docker ps -aq`
+
+to see what is available in my environment
+docker ps -a
+
+How to preserve stateless
+> mkdir test   £Make a folder
+> cd test/ £move to the folder
+> ls  £list files in the folder
+> touch file1.txt file2.txt file3.txt  £create files in the folder
+> echo "Hello from host"> file1.txt £write text in a file
+> ls £list files
+file1.txt  file2.txt  file3.txt
+> cat file1.txt £View content of a file
+Hello from host
+> cat file2.txt £View content of a file
+> touch script.py £ This create a new file
+I can run this script with
+Python script.py
+How do i run this script from a docker
+cd .. £ to root directory
+# we do volume mapping with -V $(pwd)/test: /app/test
+docker run -it  -v $(pwd)/test:/app/test --entrypoint=bash python:3.13.11-slim
+# then all the linux functions applies
+root@bfb0856598de:/# ls
+app  boot  etc   lib    media  opt   root  sbin  sys  usr
+bin  dev   home  lib64  mnt    proc  run   srv   tmp  var
+root@bfb0856598de:/# cd app/
+root@bfb0856598de:/app# ls
+test
+root@bfb0856598de:/app# cd test/
+root@bfb0856598de:/app/test# ls
+file1.txt  file2.txt  file3.txt  script.py
+root@bfb0856598de:/app/test# python script.py
+
+# create virtual environment within your workspace to install all required library
+pip install uv
+uv init --python 3.13  #initiate the virtual environment with python 3.13
+uv run python -V create the virtual environment
+uv run which python # to verify virtual environment python
+which python # To verufy the code space python
+
+# pyproject.toml notes the environment dependencies
+to add libraries use
+uv add pandas pyarrow
+
+Then specify to the environment to use the uv python going forward
+just use "uv run python filename.py" to use venv python 
+
+#to commit all changes to git use the following
+git status
+git add .
+cd .. # go to the root
