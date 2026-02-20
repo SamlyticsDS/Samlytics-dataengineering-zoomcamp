@@ -84,6 +84,13 @@ Then specify to the environment to use the uv python going forward
 just use "uv run python filename.py" to use venv python 
 
 #to commit all changes to git use the following
-git status
-git add .
+git status  # to view the status of all unadded files
+git add .  # To add all the files
 cd .. # go to the root
+git commit -m 'pipeline' # to commit changes with message
+
+To create my Docker image
+We create Dockerfile that describe how I build the image
+
+go to the Docker folder and do
+docker run -t test:pandas  . # -t is for task where test is the taskname and . means build in current directory
