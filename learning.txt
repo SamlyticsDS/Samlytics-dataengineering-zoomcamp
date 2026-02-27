@@ -93,4 +93,90 @@ To create my Docker image
 We create Dockerfile that describe how I build the image
 
 go to the Docker folder and do
-docker run -t test:pandas  . # -t is for task where test is the taskname and . means build in current directory
+# To build first -t is for task where test is the taskname . means build in current directory
+docker build -t test:pandas  .
+
+#To run specify entrypoint and --rm to remove all files once done
+docker run -it --entrypoint=bash --rm test:pandas
+ls to confirm the file was created 
+
+I can add an entry point to the docker file
+ENTRYPOINT [ "python", "pipeline.py" ]
+hence I will build the docker machine again and run with below
+docker run -it --rm test:pandas 12
+
+We can use uv in docker also by copying from another docker image
+COPY --from=ghcr.io/astral-sh/uv:python3.13 /uv /bin/
+
+use docker to run postgres
+docker run -it --rm \ #add -d for opening in detached mode
+  -e POSTGRES_USER="root" \
+  -e POSTGRES_PASSWORD="root" \
+  -e POSTGRES_DB="ny_taxi" \
+  -v ny_taxi_postgres_data:/var/lib/postgresql \ # makes it internal volume for docker
+  -p 5432:5432 \ # make the port available outside the container port mapping
+  postgres:18
+
+ctrl c to shut down
+
+  # To access the database Open a separate terminal 
+uv add --dev pgcli  # A python tool --dev means dev dependencise and are not installed in Docker
+Then we can connect
+uv run pgcli -h localhost -p 5432 -u root -d ny_taxi # host, port, user, database
+password: root
+\dt  # to view data tables in the docker
+create table test(id integer, name varchar(50));
+insert into test values (1, 'Hello Docker');
+select * from test;
+
+\q to exit the Postgress envieon
+
+Adding jupyter to uv> 
+
+uv add --dev jupyter
+uv run jupyter notebook
+
+# To convert Jupyter notebook to python script run
+uv run jupyter nbconvert --to=script notebook.ipynb
+
+
+Modify script and use Agent to create Click version we can use cli to modify the script
+  uv run python ingest_data_cli.py \
+  --year 2021 \
+  --month 1\
+  --user root \
+  --password root\
+  --host localhost\
+  --port 5432 \
+  --db ny_taxi \
+  --table yellow_taxi_trips_2021_1
+
+  #Update the docker script to Copy ingest_data_cli.py
+
+  the run docker build
+  docker build -t taxi_ingest:v001 .
+  then run
+
+docker run --rm taxi_ingest:v001 \
+  --year 2021\
+  --month 1\
+  --user root\
+  --password root\
+  --host localhost\
+  --db ny_taxi \
+  -- network=pg-network
+  --table yellow_taxi_trips_2021_1_DC
+
+  # Now we have multiple dockers and we need to create a network so they can connect
+  using
+  docker network create pg-network
+  i will now create the DB again
+  docker run -it --rm \
+  -e POSTGRES_USER="root" \
+  -e POSTGRES_PASSWORD="root" \
+  -e POSTGRES_DB="ny_taxi" \
+  -v ny_taxi_postgres_data:/var/lib/postgresql \ 
+  -p 5432:5432 \
+  --network=pg-network \
+  --name pgdatabase \
+  postgres:18

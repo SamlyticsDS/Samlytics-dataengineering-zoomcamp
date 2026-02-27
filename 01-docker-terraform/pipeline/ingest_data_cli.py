@@ -1,9 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
-
-
 import pandas as pd
 from sqlalchemy import create_engine
 from tqdm.auto import tqdm #to track increamental loading
