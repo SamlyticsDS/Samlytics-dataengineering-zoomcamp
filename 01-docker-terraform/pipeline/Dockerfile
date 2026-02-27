@@ -7,7 +7,7 @@ ENV PATH="/code/.venv/bin:$PATH"
 COPY pyproject.toml .python-version uv.lock ./
 # Install Python dependencies defined by uv. Using `uv sync` (without --locked)
 # avoids failing the build if the local lockfile is out of date in this workspace.
-RUN uv sync
+RUN uv sync --locked
 
 ## COPY pipeline.py .
 COPY ingest_data_cli.py .
