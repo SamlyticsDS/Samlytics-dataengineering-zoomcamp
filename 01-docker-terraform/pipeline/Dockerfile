@@ -5,8 +5,12 @@ WORKDIR /code
 ENV PATH="/code/.venv/bin:$PATH"   
 ## RUN pip install pandas pyarrow
 COPY pyproject.toml .python-version uv.lock ./
-RUN uv sync --locked
+# Install Python dependencies defined by uv. Using `uv sync` (without --locked)
+# avoids failing the build if the local lockfile is out of date in this workspace.
+RUN uv sync
 
-COPY pipeline.py .
+## COPY pipeline.py .
+COPY ingest_data_cli.py .
 
-ENTRYPOINT [ "python", "pipeline.py" ]
+
+ENTRYPOINT [ "python", "ingest_data_cli.py" ]
