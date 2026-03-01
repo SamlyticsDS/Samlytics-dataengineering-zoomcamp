@@ -139,44 +139,107 @@ uv run jupyter notebook
 # To convert Jupyter notebook to python script run
 uv run jupyter nbconvert --to=script notebook.ipynb
 
+# To check the parameter required for the script
+uv run python ingest_data_cli.py --help
 
 Modify script and use Agent to create Click version we can use cli to modify the script
-  uv run python ingest_data_cli.py \
+uv run python ingest_data_cli.py \
   --year 2021 \
-  --month 1\
+  --month 2\
   --user root \
   --password root\
   --host localhost\
   --port 5432 \
   --db ny_taxi \
-  --table yellow_taxi_trips_2021_1
+  --table yellow_taxi_trips_2021_2
 
   #Update the docker script to Copy ingest_data_cli.py
 
-  the run docker build
-  docker build -t taxi_ingest:v001 .
-  then run
-
-docker run --rm taxi_ingest:v001 \
+the run docker build
+docker build -t taxi_ingest:v001 .
+  
+  
+then run
+docker run -it --rm taxi_ingest:v001 \
   --year 2021\
-  --month 1\
+  --month 3\
   --user root\
   --password root\
   --host localhost\
   --db ny_taxi \
-  -- network=pg-network
-  --table yellow_taxi_trips_2021_1_DC
-
-  # Now we have multiple dockers and we need to create a network so they can connect
-  using
-  docker network create pg-network
-  i will now create the DB again
-  docker run -it --rm \
-  -e POSTGRES_USER="root" \
-  -e POSTGRES_PASSWORD="root" \
-  -e POSTGRES_DB="ny_taxi" \
-  -v ny_taxi_postgres_data:/var/lib/postgresql \ 
-  -p 5432:5432 \
+  --port 5432 \
   --network=pg-network \
-  --name pgdatabase \
-  postgres:18
+  --table yellow_taxi_trips_2021_3
+
+  # Now we have multiple dockers and we need to create a network so they can connect   using
+  docker network create pg-network
+  
+  #I will now create the DB again
+docker run -it --rm \
+   --network=pg-network  \# This specifies where I want to run the DB
+   --name=pgdatabase  \
+   -e POSTGRES_USER="root"   \
+   -e POSTGRES_PASSWORD="root"   \
+   -e POSTGRES_DB="ny_taxi"   \
+   -v ny_taxi_postgres_data:/var/lib/postgresql   \
+   -p 5432:5432 \
+   postgres:18
+
+then run my docker
+docker run -it --rm  \
+--network=pg-network  \
+ taxi_ingest:v001  \
+  --year 2021  \
+  --month 3  \
+  --user root  \
+  --password root  \
+  --host pgdatabase  \# Host is now pgdatabase not localhost of my laptop
+  --db ny_taxi  \
+  --port 5432  \  
+  --table yellow_taxi_trips_2021_3
+
+  docker run -it --rm  --network=pg-network   taxi_ingest:v001    --year 2021    --month 3    --user root    --password root    --host pgdatabase    --db ny_taxi    --port 5432  --table yellow_taxi_trips_2021_3
+
+# In another terminal run pgAdmin on thesame network for a GUI
+docker run -it \
+  -e PGADMIN_DEFAULT_EMAIL="admin@admin.com  \
+  -e PGADMIN_DEFAULT_PASSWORD="root"  \
+  -v pgadmin_data:/var/lib/pgadmin \
+  -p 8085:80 \
+  --network=pg-network  \
+  dpage/pgadmin4
+
+  Once it start working you can add the port 8085 on the port list "127.0.0.1:8085" past the link on the browser
+  register a new server
+  General name --pg
+  Connection Hostname-pgdatabase
+  username root
+  password root
+
+  To run the Postgress server and pgadmin interface with Docker-compose.yaml
+  create the file docker-compose.yaml
+  we use AI to create the compose file for the two database docker and remove network and container name because what ever is run 
+  in docker compose is within a network
+  # to run docker compose file do 
+  docker-compose up #To run the docker compose file
+  docker-compose down
+
+  docker ps -a #to check what is running even when terminated
+  docker rm $(docker ps -aq)
+
+  docker network ls to get the list of available docker networks
+  pipeline_default
+  use this new network in the pipeline docker
+
+
+docker run -it --rm  \
+--network=pipeline_default  \
+ taxi_ingest:v001  \
+  --year 2021  \
+  --month 3  \
+  --user root  \
+  --password root  \
+  --host pgdatabase  \
+  --db ny_taxi  \
+  --port 5432  \  
+  --table yellow_taxi_trips_2021_3
